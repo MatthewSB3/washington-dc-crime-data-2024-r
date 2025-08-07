@@ -1,0 +1,183 @@
+---
+title: "Writing Sample 1 PDF"
+author: "Matthew Van De Velde"
+date: "2025-02-22"
+output: pdf_document
+header-includes:
+   - \usepackage{indentfirst}
+   - \setlength{\parindent}{15pt}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(knitr)
+library(ggplot2)
+library(dplyr)
+crime_data <- read.csv("Crime_Incidents_in_2024.csv")
+```
+
+# Executive Summary
+Crime incidents in Washington D.C. in 2024 followed clear patterns based on time of day and location. Violent crimes, such as robbery, assault with a dangerous weapon, burglary, arson, sex abuse, and homicide, were heavily concentrated in the Evening and Midnight shifts. The violent crime that occurred during the Evening and Midnight shifts made up 75% of total violent crimes. Midnight shift alone accounted for 42% of all violent crimes, despite making up only 20% of total crimes. Additionally, Wards 8, 7, 5, and 1 exhibited the highest levels of violent crime. Based on these findings, strategic resource allocation towards these high-risk shifts and locations could enhance crime prevention and deterrence efforts.
+
+```{r echo=FALSE}
+violent_crimes <- crime_data %>%
+  filter(OFFENSE %in% c("ROBBERY", "ASSAULT W/DANGEROUS WEAPON", 
+                        "HOMICIDE", "SEX ABUSE", "ARSON", "BURGLARY"))
+
+crime_by_shift <- crime_data %>%
+  group_by(SHIFT) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(crime_by_shift, caption = "Crime Incidents by Shift", align = "c")
+
+violent_by_shift <- violent_crimes %>%
+  group_by(SHIFT) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(violent_by_shift, caption = "Violent Crime Incidents by Shift")
+```
+
+# Background
+The crime report database by the District of Columbia Metropolitan Police Department documents each reported crime. Each report contains the following information:
+
+- **CCN** - Case Control Number  
+- **Report Date** - Date the crime was reported  
+- **Shift** - Time of day the crime occurred  
+- **Method** - How the crime was committed  
+- **Offense** - Type of crime committed  
+- **Block** - Location of the crime  
+- **XBLOCK / YBLOCK** - Coordinates of crime location  
+- **Ward** - Political District  
+- **ANC** - Advisory Neighborhood Commission  
+
+# Most Common Criminal Offenses:
+According to the data from the District of Columbia Metropolitan Police Department, there were 29,295 crimes reported in the year 2024. Of the 29,295 crimes committed, 2,174 crimes involved a gun as the method of assault and 415 involved a knife as the method of assault. This means 91% of the total crimes committed did not involve a gun or knife. 
+```{r echo=FALSE}
+crime_by_offense <- crime_data %>%
+  group_by(OFFENSE) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(crime_by_offense, caption = "Crime Incidents by Offense", align = "c")
+```
+
+There were 24,824 instances of theft across the three different categories of theft. This means 84.7% of all crime was some type of theft and in the non-violent category. Increasing fines, jail time, prosecution rates, and overall severity of punishments for Theft crimes could decrease the number of incidents in the coming years.
+
+# Location and the Impact it Has on Crime:
+The location of the crimes can be examined by Wards. There are 8 Wards and the crime incident count for each ward is as follows.
+```{r echo=FALSE}
+
+
+crime_by_ward <- crime_data %>%
+  group_by(WARD) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(crime_by_ward, caption = "Crime Incidents by Ward", align = "c")
+```
+Wards 5, 2, 1, 7, and 6 have the highest crime incidences, but when looking at the Wards with the highest level of violent crimes we get a different order. 
+```{r echo=FALSE}
+
+violent_crimes <- crime_data %>%
+  filter(OFFENSE %in% c("ROBBERY", "ASSAULT W/DANGEROUS WEAPON", 
+                        "HOMICIDE", "SEX ABUSE", "ARSON", "BURGLARY"))
+
+violent_by_ward <- violent_crimes %>%
+  group_by(WARD) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+
+knitr::kable(violent_by_ward, caption = "Violent Crime Incidents by Ward")
+```
+Analysis of Wards and their crime rates reveal:   
+
+- Ward 8 has the highest level of violent crime despite having the third lowest total crime incidences  
+- 30% of Ward 8 crime is violent crime   
+- 22% of Ward 7 crime is violent crime    
+- 16% of Ward 1 crime is violent crime   
+- 15% of Ward 5 crime is violent crime   
+
+
+Comparing these numbers to other Wards shows disproportionate amount of violent crime occurs in these Wards:   
+
+- 8% of Ward 2 crime is violent crime despite it having the second highest number of crime incidents    
+
+- 5.9% of Ward 3 crime is violent crime    
+
+The conclusion from these statistics is that the amount of crime incidents is not the most important factor when determining which Wards have the highest number of violent crimes. This can be concluded from Ward 8 having the third lowest crime count but the highest violent crime rate, and Ward 2 had the second highest count for crime, but the second lowest violent crime rate at 8%.
+
+
+# Gun and Knife Crime Trends
+The most amount of crimes reported happened in the Evening shift, followed closely by the Day shift, and the Midnight shift had significantly less crimes committed, but, the amount of Gun and Knife crimes increased from Day to Evening to Midnight, confirming the later shifts have more gun and knife crimes.
+```{r echo = FALSE}
+weapon_crimes <- crime_data %>%
+  filter(METHOD %in% c("GUN", "KNIFE"))
+
+weapon_by_shift <- weapon_crimes %>%
+  group_by(SHIFT, METHOD) %>%
+  summarise(Count = n()) %>%
+  arrange(desc(Count))
+
+
+knitr::kable(weapon_by_shift, caption = "Gun and Knife Crimes by Shift")
+```
+Analyzing this statistic further and combining it with the total crime count per shift we can see that Midnight shift only has 50% of the total crimes that the Evening shift has, and 52% of the total crimes that Day shift has, yet the percentages for the shifts compared are as follows:   
+
+- 48.5% of all gun offenses occurred during the Midnight shift   
+
+- 34% of all knife offenses occurred during the Midnight shift  
+
+- There is a 177.4% increase of gun crimes at Midnight compared to Day shift 
+
+- There is a 71.1% increase of knife crimes at Midnight compared to Day shift   
+
+- There is a 30.3% increase of gun crimes at Midnight compared to Evening shift   
+
+- There is a 22.1% increase of knife crimes at Midnight compared to Evening shift   
+
+- 85.5% of all gun offenses occurred during the Midnight and Evening shift   
+
+- 76.6% of all knife offenses occurred during the Midnight and Evening shift   
+
+The conclusion is that gun and knife crimes are vastly more common during the Midnight and Evening shifts. For the Midnight shift specifically, despite having an overall lower number of crime incidents it accounts for an unproportionate amount of gun and knife offenses. 
+
+If targeting the reduction of gun and knife crimes the shift to focus on will be the Midnight shift and then secondly the Evening shift.
+
+# Violent Crimes and Peak Shifts
+Of the 29,295 criminal offenses that were reported, 4,471 would be in the category of violent crimes-violent crimes classified as robbery, assault with a dangerous weapon, homicide, sex abuse, and arson. This makes 15.3% of all crimes reported violent crimes.
+When looking at the peak shifts for certain crimes the data reveals that the Midnight shift has the most occurrences of Assault with a dangerous weapon, Homicide, and Robbery. The evening shift has the highest rates of Arson and Sex Abuse. 
+
+```{r echo=FALSE}
+crime_by_shift <- crime_data %>%
+  group_by(OFFENSE, SHIFT) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  arrange(OFFENSE, desc(count))
+
+
+peak_shift <- crime_by_shift %>%
+  group_by(OFFENSE) %>%
+  slice_max(count, n = 1)
+
+knitr::kable(peak_shift, caption = "Peak Shift for Crime Offense", align = "c")
+```
+
+The key takeaway from this statistic is certain crimes tend to occur during certain shifts: 
+
+- 100% of all homicides occurred during the Midnight shift    
+
+- 44.6% of all Assault with a dangerous weapon occurred during the Midnight shift   
+
+- 41.8% of all Robbery occurred during the Midnight shift   
+
+
+# Implications and Recommendations
+The analysis of crime incidents in Washington D.C. for 2024 reveals clear crime patterns based on time and location. Violent crimes—including robbery, assault with a dangerous weapon, homicide, sex abuse, and arson—are disproportionately concentrated in the Evening and Midnight shifts, with Midnight alone accounting for 42% of all violent crimes, despite making up only 20% of total reported crime.
+
+Gun and knife-related offenses increase significantly at night, with gun crimes rising 177.4% and knife crimes 71.1% in the Midnight shift compared to the Day shift. 85.5% of all gun crimes and 76.6% of all knife crimes occur in the Evening and Midnight shifts, highlighting the increased risk of violent crime during these hours. 
+
+Analyzing crimes by location reveals that Wards 8, 7, 5, and 1 have disproportionately high levels of violent crime. Wards 5, 2, and 1 report high overall crime statistics, by relatively low violent crime rates, with Ward 3 having the lowest percentage of violent crimes coming in at 5.9%. This comparison to Ward 8, which leads all Wards in violent crime rates at 30%, proves that the number of incidences of crime is not directly proportional to the percentage of violent crimes. 
+
+Given these findings and the analysis of the data set provided by the District of Columbia Metropolitan Police Department, my recommendation to reduce violent crime in the city of Washington D.C. is for additional law enforcement patrols and personnel be allocated to Wards 8, 7, 5, and 1 particularly during the Evening and Midnight shifts, where violent crime is most prevalent. 

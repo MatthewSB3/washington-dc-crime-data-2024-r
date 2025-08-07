@@ -1,0 +1,233 @@
+---
+title: 'Writing Sample: Crime Incidents in Washington D.C. in 2024'
+author: "Matthew Van De Velde"
+date: "2025-02-21"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 5, fig.height = 3)
+```
+
+```{r echo=FALSE}
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(pander)
+crime_data <- read.csv("Crime_Incidents_in_2024.csv")
+# head(crime_data)
+# str(crime_data)
+# colSums(is.na(crime_data))
+```
+
+```{r echo=FALSE}
+ggplot(crime_data, aes(x = SHIFT)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Crime Incidents by Shift", x = "Shift", y = "Count") +
+  theme_minimal()
+
+crime_by_shift <- crime_data %>%
+  group_by(SHIFT) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(crime_by_shift, caption = "Crime Incidents by Shift", align = "c")
+
+
+
+```
+
+
+```{r echo=FALSE}
+ggplot(crime_data, aes(x = fct_infreq(METHOD))) +
+  geom_bar(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Most Common Crime Methods", x = "Method", y = "Count") +
+  theme_minimal()
+
+crime_by_method <- crime_data %>%
+  group_by(METHOD) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(crime_by_method, caption = "Crime Incidents by Method", align = "c")
+
+```
+
+```{r echo=FALSE}
+ggplot(crime_data, aes(x = fct_infreq(OFFENSE))) +
+  geom_bar(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Most Common Crime Offenses", x = "Offense", y = "Count") +
+  theme_minimal()
+
+crime_by_offense <- crime_data %>%
+  group_by(OFFENSE) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(crime_by_offense, caption = "Crime Incidents by Offense", align = "c")
+
+```
+
+```{r echo=FALSE}
+ggplot(crime_data, aes(x = as.factor(WARD))) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Crime Incidents by Ward", x = "Ward", y = "Count") +
+  theme_minimal()
+
+crime_by_ward <- crime_data %>%
+  group_by(WARD) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(crime_by_ward, caption = "Crime Incidents by Ward", align = "c")
+
+
+```
+
+```{r echo=FALSE}
+ggplot(crime_data, aes(x = SHIFT, fill = METHOD)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Crime Method by Shift", x = "Shift", y = "Count", fill = "Method") +
+  theme_minimal()
+
+
+crime_method_shift <- crime_data %>%
+  group_by(SHIFT, METHOD) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(SHIFT, desc(Count))
+
+knitr::kable(crime_method_shift, caption = "Crime Method by Shift", align = "c")
+
+```
+
+```{r echo=FALSE, fig.width = 8, fig.height = 6}
+ggplot(crime_data, aes(x = SHIFT, fill = OFFENSE)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Crime Type by Shift", x = "Shift", y = "Count", fill = "Offense") +
+  theme_minimal()
+
+crime_type_shift <- crime_data %>%
+  group_by(SHIFT, OFFENSE) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(SHIFT, desc(Count))
+
+knitr::kable(crime_type_shift, caption = "Crime Incidents by Shift", align = "c")
+
+```
+
+```{r echo=FALSE, fig.width = 8, fig.height = 6}
+ggplot(crime_data, aes(x = as.factor(WARD), fill = OFFENSE)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Crime Type by Ward", x = "Ward", y = "Count", fill = "Offense") +
+  theme_minimal()
+
+crime_type_ward <- crime_data %>%
+  group_by(WARD, OFFENSE) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(WARD, desc(Count))
+
+knitr::kable(crime_type_ward, caption = "Crime Offense by Ward", align = "c")
+
+
+```
+
+```{r}
+crime_by_shift <- crime_data %>%
+  group_by(OFFENSE, SHIFT) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  arrange(OFFENSE, desc(count))
+
+
+peak_shift <- crime_by_shift %>%
+  group_by(OFFENSE) %>%
+  slice_max(count, n = 1)
+
+knitr::kable(peak_shift, caption = "Peak Shift for Crime Offense", align = "c")
+
+crime_by_ward <- crime_data %>%
+  group_by(OFFENSE, WARD) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  arrange(OFFENSE, desc(count))
+
+peak_ward <- crime_by_ward %>%
+  group_by(OFFENSE) %>%
+  slice_max(count, n = 1)
+
+knitr::kable(peak_ward, caption = "Peak Ward for Crime Offense", align = "c")
+```
+
+```{r}
+violent_crimes <- crime_data %>%
+  filter(OFFENSE %in% c("ROBBERY", "ASSAULT W/DANGEROUS WEAPON", 
+                        "HOMICIDE", "SEX ABUSE", "ARSON", "BURGLARY"))
+
+violent_by_shift <- violent_crimes %>%
+  group_by(SHIFT) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+knitr::kable(violent_by_shift, caption = "Violent Crime Incidents by Shift")
+
+
+violent_by_ward <- violent_crimes %>%
+  group_by(WARD) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(desc(Count))
+
+
+knitr::kable(violent_by_ward, caption = "Violent Crime Incidents by Ward")
+```
+
+```{r echo=FALSE, fig.width = 8, fig.height = 6}
+
+ggplot(crime_data, aes(x = XBLOCK, y = YBLOCK)) +
+  geom_density2d() +
+  geom_point(alpha = 0.1) +
+  labs(title = "Crime Density Heatmap", x = "Longitude", y = "Latitude") +
+  theme_minimal()
+
+```
+
+```{r echo=FALSE, fig.width = 8, fig.height = 6}
+
+
+weapon_crimes <- crime_data %>%
+  filter(METHOD %in% c("GUN", "KNIFE"))
+
+
+weapon_by_shift <- weapon_crimes %>%
+  group_by(SHIFT, METHOD) %>%
+  summarise(Count = n()) %>%
+  arrange(desc(Count))
+
+
+knitr::kable(weapon_by_shift, caption = "Gun and Knife Crimes by Shift")
+```
+
+```{r}
+crime_data <- crime_data %>%
+  mutate(REPORT_DAT = as.Date(REPORT_DAT),
+         Month = month(REPORT_DAT, label = TRUE))
+
+crime_by_month <- crime_data %>%
+  group_by(Month) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(Month)
+
+knitr::kable(crime_by_month, caption = "Crime by Month")
+
+violent_crimes <- c("ROBBERY", "ASSAULT W/DANGEROUS WEAPON", "HOMICIDE", "SEX ABUSE", "ARSON", "BURGLARY")
+
+crime_violent_by_month <- crime_data %>%
+  filter(OFFENSE %in% violent_crimes) %>%
+  group_by(Month) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(Month)
+
+knitr::kable(crime_violent_by_month, caption = "Violent Crime by Month")
+
+
+```
